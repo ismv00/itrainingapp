@@ -11,12 +11,13 @@ import {
 
 import { colors } from '../../styles/colors';
 import { globalStyles } from '../../styles/globalStyles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import KeyboardAvoidingWrapper from '../../components/KeyboardAvoidingWrapper';
 import LogoWrapper from '../../components/LogoWrapper';
 
+type HeighScreenRouteProp = RouteProp<RootStackParamList, 'Height'>;
 type HeightScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Height'
@@ -24,6 +25,9 @@ type HeightScreenNavigationProp = NativeStackNavigationProp<
 
 export default function HeightScreen() {
   const navigation = useNavigation<HeightScreenNavigationProp>();
+  const route = useRoute<HeighScreenRouteProp>();
+
+  const { gender, age } = route.params;
 
   const [height, setHeight] = useState('');
 
@@ -33,9 +37,7 @@ export default function HeightScreen() {
       return;
     }
 
-    console.log('Altura informada.', height);
-
-    navigation.navigate('Weight');
+    navigation.navigate('Weight', { gender, age, height });
   };
 
   const isContinuedDisable = height === '';

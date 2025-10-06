@@ -9,13 +9,19 @@ import {
   Keyboard,
 } from 'react-native';
 import { colors } from '../../styles/colors';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  Route,
+} from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { globalStyles } from '../../styles/globalStyles';
 import KeyboardAvoidingWrapper from '../../components/KeyboardAvoidingWrapper';
 import LogoWrapper from '../../components/LogoWrapper';
 
+type AgeScreenRouteProp = RouteProp<RootStackParamList, 'Age'>;
 type AgeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Age'
@@ -23,6 +29,8 @@ type AgeScreenNavigationProp = NativeStackNavigationProp<
 
 export default function AgeScreen() {
   const navigation = useNavigation<AgeScreenNavigationProp>();
+  const route = useRoute<AgeScreenRouteProp>();
+  const { gender } = route.params;
 
   const [age, setAge] = useState('');
 
@@ -33,9 +41,7 @@ export default function AgeScreen() {
       return;
     }
 
-    console.log('Idade informada', age);
-
-    navigation.navigate('Height');
+    navigation.navigate('Height', { gender, age });
   };
 
   const isContinuedDisable = age === '';

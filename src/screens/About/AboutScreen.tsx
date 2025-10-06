@@ -19,8 +19,9 @@ export default function AboutScreen() {
   };
 
   const handleContinue = () => {
-    console.log('genero selecionado', selectedGender);
-    navigation.navigate('Age');
+    if (!selectedGender) return;
+
+    navigation.navigate('Age', { gender: selectedGender });
   };
 
   const isContinuedDisable = selectedGender === null;

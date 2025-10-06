@@ -12,6 +12,7 @@ import AboutScreen from '../screens/About/AboutScreen';
 import AgeScreen from '../screens/Age/AgeScreen';
 import HeightScreen from '../screens/Height/HeightScreen';
 import WeightScreen from '../screens/Weight/WeightScreen';
+import WorkoutScreen from '../screens/Workout/WorkoutScreen';
 
 export type RootStackParamList = {
   Test: undefined;
@@ -20,9 +21,10 @@ export type RootStackParamList = {
   Register: undefined;
   Profile: undefined;
   About: undefined;
-  Age: undefined;
-  Height: undefined;
-  Weight: undefined;
+  Age: { gender: string };
+  Height: { gender: string; age: string };
+  Weight: { gender: string; age: string; height: string };
+  Workout: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -74,6 +76,12 @@ export default function AppNavigator({ initialRouteName }: AppNavigatorProps) {
       <Stack.Screen
         name="Weight"
         component={WeightScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="Workout"
+        component={WorkoutScreen}
         options={{ headerShown: false }}
       />
 
