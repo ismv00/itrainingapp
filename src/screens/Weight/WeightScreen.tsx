@@ -8,13 +8,19 @@ import {
   Keyboard,
   StyleSheet,
 } from 'react-native';
+
 import { colors } from '../../styles/colors';
 import { globalStyles } from '../../styles/globalStyles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../../services/firebaseConfig';
+import { User } from 'firebase/auth';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import KeyboardAvoidingWrapper from '../../components/KeyboardAvoidingWrapper';
 import LogoWrapper from '../../components/LogoWrapper';
+
+type WeightScreenRouteProp = RouteProp<RootStackParamList, 'Weight'>;
 
 type WeightScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -23,17 +29,41 @@ type WeightScreenNavigationProp = NativeStackNavigationProp<
 
 export default function WeightScreen() {
   const navigation = useNavigation<WeightScreenNavigationProp>();
+  const route = useRoute<WeightScreenRouteProp>();
+
+  const { gender, age, height } = route.params;
+
   const [weight, setWeight] = useState('');
 
-  const handleContinue = () => {
+  const handleCompleteRegistration = async () => {
+    Keyboard.dismiss();
+
     if (!weight) {
       Alert.alert('Ops!', 'Você não informou um peso.');
       return;
     }
 
-    console.log('Peso informado', weight);
+    const user = auth.currentUser as User;
+    if (!user) {
+      Alert.alert('Erro', 'Usuário não autenticado.');
+      return;
+    }
 
-    navigation.navigate('Profile');
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        gender: gender,
+        age: Number(age),
+        height: Number(height),
+        weight: Number(weight),
+        onboardingComplete: true,
+      });
+
+      Alert.alert('Sucesso', 'Seu perfil foi configurado.');
+      navigation.navigate('Workout');
+    } catch (error) {
+      console.error('Erro ao salvar dados de onboarding:', error);
+      Alert.alert('Erro', 'Não foi possível salvar os dados. Tente novamente.');
+    }
   };
 
   const isContinuedDisable = weight === '';
@@ -61,10 +91,10 @@ export default function WeightScreen() {
             globalStyles.primaryButton,
             isContinuedDisable && styles.disableButton,
           ]}
-          onPress={handleContinue}
+          onPress={handleCompleteRegistration}
           disabled={isContinuedDisable}
         >
-          <Text style={globalStyles.primaryButtonText}>Continue</Text>
+          <Text style={globalStyles.primaryButtonText}>Finalizar Cadastro</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingWrapper>

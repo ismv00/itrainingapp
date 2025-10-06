@@ -36,11 +36,11 @@ export default function Login() {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
     }
-
     try {
+      // Realizar o login
       setLoading(true);
-      await signInWithEmailAndPassword(auth!, email, password);
-      navigation.navigate('Profile');
+      await signInWithEmailAndPassword(auth, email, password);
+      navigation.navigate('Workout');
     } catch (error: any) {
       console.error(error);
       let message = 'Não foi possível realizar o login';
