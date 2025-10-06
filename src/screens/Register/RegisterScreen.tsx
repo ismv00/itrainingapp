@@ -17,7 +17,7 @@ import { globalStyles } from '../../styles/globalStyles';
 import KeyboardAvoidingWrapper from '../../components/KeyboardAvoidingWrapper';
 import LogoWrapper from '../../components/LogoWrapper';
 
-//Integracao com Firebase
+// Integracao com Firebase
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
@@ -115,7 +115,7 @@ export default function RegisterScreen() {
           value={password}
           onChangeText={setPassword}
         />
-        ==== Botão de criar conta ====
+        {/* ==== Botão de criar conta ==== */}
         <TouchableOpacity
           style={globalStyles.primaryButton}
           onPress={handleRegister}
@@ -125,7 +125,7 @@ export default function RegisterScreen() {
             {loading ? 'Criando conta...' : 'Criar conta'}
           </Text>
         </TouchableOpacity>
-        ==== Rodapé ====
+        {/* ==== Rodapé ==== */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Já possui uma conta?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>

@@ -79,11 +79,11 @@ export default function Login() {
           value={password}
           onChangeText={setPassword}
         />
-        --- ==== Botão de esqueceu sua senha ====
+        {/* --- ==== Botão de esqueceu sua senha ==== */}
         <TouchableOpacity style={styles.forgotContainer}>
           <Text style={styles.forgotText}>Esqueceu sua senha?</Text>
         </TouchableOpacity>
-        --- ==== Botao de Login ====
+        {/* --- ==== Botao de Login ==== */}
         <TouchableOpacity
           style={globalStyles.primaryButton}
           onPress={handleLogin}
@@ -94,7 +94,7 @@ export default function Login() {
           </Text>
         </TouchableOpacity>
         <Text style={styles.divider}>Ou faça login com</Text>
-        ==== botão de logar com o Google ====
+        {/* ==== botão de logar com o Google ==== */}
         <TouchableOpacity style={styles.googleButton}>
           <Image
             source={require('../../assets/googleLogo.png')}
@@ -102,7 +102,7 @@ export default function Login() {
           />
           <Text style={styles.googleText}>Continue com Google</Text>
         </TouchableOpacity>
-        ==== Botão de Cadastre-se ====
+        {/* ==== Botão de Cadastre-se ==== */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Não possui uma conta?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>

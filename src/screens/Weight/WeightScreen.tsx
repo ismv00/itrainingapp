@@ -58,8 +58,7 @@ export default function WeightScreen() {
         onboardingComplete: true,
       });
 
-      Alert.alert('Sucesso', 'Seu perfil foi configurado.');
-      navigation.navigate('Workout');
+      navigation.navigate('Profile');
     } catch (error) {
       console.error('Erro ao salvar dados de onboarding:', error);
       Alert.alert('Erro', 'Não foi possível salvar os dados. Tente novamente.');
