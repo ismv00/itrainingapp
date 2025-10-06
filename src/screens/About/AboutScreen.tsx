@@ -35,7 +35,7 @@ export default function AboutScreen() {
       </Text>
 
       <View style={styles.optionsContainer}>
-        ==== Escolhe de genero
+        {/* ==== Escolhe de genero */}
         <TouchableOpacity
           style={[
             styles.genderButton,
@@ -78,7 +78,7 @@ export default function AboutScreen() {
           />
           <Text style={styles.genderText}>Não quero informar</Text>
         </TouchableOpacity>
-        ==== botao de continuar
+        {/* ==== botao de continuar */}
         <TouchableOpacity
           style={[
             styles.continueButton,

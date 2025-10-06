@@ -84,9 +84,16 @@ export default function ProfileScreen() {
         photoURL: downloadUrl,
       });
 
-      Alert.alert('Sucesso!', 'Foto do perfil salva.');
+      Alert.alert('Sucesso!', 'Foto do perfil salva.', [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.navigate('Workout');
+          },
+        },
+      ]);
 
-      navigation.navigate('Test');
+      navigation.navigate('Workout');
     } catch (error) {
       console.error(error);
       Alert.alert('Erro', 'Não foi possível salvar a foto.');
@@ -120,7 +127,7 @@ export default function ProfileScreen() {
           />
         </TouchableOpacity>
       </View>
-      ==== Botao de salvar a foto. ====
+      {/* ==== Botao de salvar a foto. ==== */}
       <TouchableOpacity style={styles.loginButton} onPress={handleSave}>
         <Text style={styles.loginText}>Salvar Foto</Text>
       </TouchableOpacity>
