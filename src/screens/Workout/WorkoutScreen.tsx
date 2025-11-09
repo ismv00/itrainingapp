@@ -15,6 +15,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import UserProfileHeader from '../../components/UserProfileHeader';
 import { auth, db } from '../../services/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 type WorkoutScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -25,45 +26,66 @@ interface Workout {
   id: string;
   name: string;
   description: string;
+  days: string[];
 }
 
 const dummyWorkouts: Workout[] = [
-  { id: '1', name: 'Treino A', description: 'Treino de peito' },
-  { id: '2', name: 'Treino B', description: 'Treino de pernas' },
-  { id: '3', name: 'Treino C', description: 'Treimo de costas' },
+  {
+    id: '1',
+    name: 'Treino A',
+    description: 'Treino de peito',
+    days: ['Segunda', 'Quinta'],
+  },
+  {
+    id: '2',
+    name: 'Treino B',
+    description: 'Treino de pernas',
+    days: ['Terça', 'Sexta'],
+  },
+  {
+    id: '3',
+    name: 'Treino C',
+    description: 'Treimo de costas',
+    days: ['Quarta', 'Sábado'],
+  },
 ];
 
 export default function WorkoutScreen() {
   const navigation = useNavigation<WorkoutScreenNavigationProp>();
-  const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  // const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!currentUser) {
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      setUser(authUser); //Atualiza o estado do usuário
+
+      if (!authUser) {
         setLoading(false);
         navigation.replace('Login');
         return;
       }
+      const fetchUserData = async () => {
+        const userDocRef = doc(db, 'users', authUser.uid);
+        const userDoc = await getDoc(userDocRef);
 
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        } else {
+          setUserData({
+            name: authUser.displayName,
+            email: authUser.email,
+            photoURL: authUser.photoURL,
+          });
+        }
+        setLoading(false);
+      };
+      fetchUserData();
+    });
 
-      if (userDoc.exists()) {
-        setUserData(userDoc.data());
-      } else {
-        setUserData({
-          name: currentUser.displayName,
-          email: currentUser.email,
-          photoURL: currentUser.photoURL,
-        });
-      }
-      setLoading(false);
-    };
-
-    fetchUserData();
-  }, [currentUser, navigation]);
+    return () => unsubscribe();
+  }, [navigation]);
 
   if (loading || !userData) {
     return (
@@ -76,7 +98,12 @@ export default function WorkoutScreen() {
   const renderItem = ({ item }: { item: Workout }) => (
     <TouchableOpacity
       style={styles.workoutCard}
-      onPress={() => console.log('Abrir treino:', item.name)}
+      onPress={() =>
+        navigation.navigate('NewWorkout', {
+          name: item.name,
+          days: item.days,
+        })
+      }
     >
       <View>
         <Text style={styles.workoutName}>{item.name}</Text>
@@ -87,15 +114,19 @@ export default function WorkoutScreen() {
     </TouchableOpacity>
   );
 
+  const handleCreateNewWorkout = () => {
+    navigation.navigate('NewWorkout', { name: '', days: [] });
+  };
+
   return (
     <View style={globalStyles.container}>
-      <UserProfileHeader user={currentUser!} userData={userData} />
+      <UserProfileHeader user={user!} userData={userData} />
 
       <TouchableOpacity
         style={styles.createButton}
-        onPress={() => console.log('Criar novo treino')}
+        // onPress={handleCreateNewWorkout}
       >
-        <Text>Criar novo</Text>
+        <Text style={styles.createButtonText}>Criar novo</Text>
       </TouchableOpacity>
 
       <FlatList
