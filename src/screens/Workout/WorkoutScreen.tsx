@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { colors } from '../../styles/colors';
 import { globalStyles } from '../../styles/globalStyles';
@@ -15,7 +16,8 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import UserProfileHeader from '../../components/UserProfileHeader';
 import { auth, db } from '../../services/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
 
 type WorkoutScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -87,6 +89,17 @@ export default function WorkoutScreen() {
     return () => unsubscribe();
   }, [navigation]);
 
+  // ==== LOGOUT ====
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigation.replace('Login');
+    } catch (error) {
+      console.error('Erro ao sair: ', error);
+      Alert.alert('Erro', 'Não foi possível sair da conta.');
+    }
+  };
+
   if (loading || !userData) {
     return (
       <View style={globalStyles.container}>
@@ -101,6 +114,7 @@ export default function WorkoutScreen() {
       onPress={() =>
         navigation.navigate('NewWorkout', {
           name: item.name,
+          description: item.description,
           days: item.days,
         })
       }
@@ -115,16 +129,20 @@ export default function WorkoutScreen() {
   );
 
   const handleCreateNewWorkout = () => {
-    navigation.navigate('NewWorkout', { name: '', days: [] });
+    navigation.navigate('NewWorkoutHeader');
   };
-
   return (
     <View style={globalStyles.container}>
-      <UserProfileHeader user={user!} userData={userData} />
+      <View style={styles.headerRow}>
+        <UserProfileHeader user={user!} userData={userData} />
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={26} color={colors.blackText} />
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
         style={styles.createButton}
-        // onPress={handleCreateNewWorkout}
+        onPress={handleCreateNewWorkout}
       >
         <Text style={styles.createButtonText}>Criar novo</Text>
       </TouchableOpacity>
@@ -141,6 +159,18 @@ export default function WorkoutScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+  },
+  logoutButton: {
+    padding: 6,
+    backgroundColor: colors.greenText,
+    borderRadius: 50,
+  },
+
   list: {
     flex: 1,
     width: '100%',

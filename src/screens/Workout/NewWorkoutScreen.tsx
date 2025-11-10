@@ -5,17 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  ScrollView,
   Alert,
+  SafeAreaView,
 } from 'react-native';
-
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
 import { EXERCISE_DATA, MuscleGroup, Exercise } from '../../data/exerciseData';
-
 import { auth, db } from '../../services/firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { User } from 'firebase/auth';
@@ -36,33 +35,23 @@ interface UserExercise extends Exercise {
 export default function NewWorkoutScreen() {
   const navigation = useNavigation<NewWorkoutNavigationProp>();
   const route = useRoute<NewWorkoutRouteProp>();
-
-  //Dados da cabeçalho
   const { name, days } = route.params;
 
-  // Estados
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [selectedExercises, setSelectedExercises] = useState<UserExercise[]>(
     []
   );
 
-  //Logica do Acordeao
   const toggleGroup = (groupId: string) => {
     setExpandedGroup(groupId === expandedGroup ? null : groupId);
   };
 
-  //Funcao que adiciona o exercicio (chama o modal)
   const handleAddExercise = (exercise: Exercise) => {
-    // Abre o modal, passando os dados do exercicio e uma função de callback
     navigation.navigate('ExerciseDetailModal', {
       exerciseName: exercise.name,
       onSave: (details) => {
-        const newExercise: UserExercise = {
-          ...exercise,
-          ...details,
-        };
+        const newExercise: UserExercise = { ...exercise, ...details };
         setSelectedExercises((prev) => [...prev, newExercise]);
-        //Fecha o modal se necessário (o modal deve gerenciar seu próprio fechado)
       },
     });
   };
@@ -81,18 +70,17 @@ export default function NewWorkoutScreen() {
 
     try {
       const finalWorkoutObject = {
-        name: name,
-        days: days,
+        name,
+        days,
         exercises: selectedExercises,
         userId: user.uid,
         createdAt: Timestamp.fromDate(new Date()),
       };
 
-      const docRef = await addDoc(
+      await addDoc(
         collection(db, 'users', user.uid, 'workouts'),
         finalWorkoutObject
       );
-
       Alert.alert('Sucesso', 'Treino salvo com sucesso!');
       navigation.navigate('Workout');
     } catch (error) {
@@ -101,7 +89,6 @@ export default function NewWorkoutScreen() {
     }
   };
 
-  // Renderização dos Itens
   const renderExercise = (exercise: Exercise) => (
     <View key={exercise.id} style={styles.exerciseItem}>
       <Text style={styles.exerciseName}>{exercise.name}</Text>
@@ -121,9 +108,11 @@ export default function NewWorkoutScreen() {
         onPress={() => toggleGroup(item.id)}
       >
         <Text style={styles.groupTitle}>{item.name}</Text>
-        <Text style={styles.groupArrow}>
-          {expandedGroup === item.id ? 'v' : '>'}
-        </Text>
+        <Ionicons
+          name={expandedGroup === item.id ? 'chevron-up' : 'chevron-down'}
+          size={18}
+          color={colors.text}
+        />
       </TouchableOpacity>
 
       {expandedGroup === item.id && (
@@ -134,46 +123,60 @@ export default function NewWorkoutScreen() {
     </View>
   );
 
-  // --- Fim da renderização
-
   return (
-    <View style={globalStyles.container}>
-      <Text style={globalStyles.title}>Adicionar Exercícios</Text>
-      <Text style={styles.headerSubtitle}>
-        Treino: {name} | Dias: {days.join(', ')}
-      </Text>
+    <SafeAreaView style={[globalStyles.container, { paddingTop: 0 }]}>
+      <View style={styles.innerContainer}>
+        <View style={styles.header}>
+          <Text style={globalStyles.title}>Adicionar Exercícios</Text>
+          <Text style={styles.headerSubtitle}>
+            Treino: {name} | Dias: {days.join(', ')}
+          </Text>
+        </View>
 
-      <Text style={styles.sectionTitle}>
-        Adicionados: {selectedExercises.length} exercícios
-      </Text>
-
-      <FlatList
-        data={EXERCISE_DATA}
-        renderItem={renderMuscleGroup}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        style={styles.flatList}
-      />
-
-      <TouchableOpacity
-        style={globalStyles.primaryButton}
-        onPress={handleSaveWorkout}
-        disabled={selectedExercises.length === 0}
-      >
-        <Text style={globalStyles.primaryButtonText}>
-          Salvar Treino Completo
+        <Text style={styles.sectionTitle}>
+          Adicionados: {selectedExercises.length} exercícios
         </Text>
-      </TouchableOpacity>
-    </View>
+
+        <FlatList
+          data={EXERCISE_DATA}
+          renderItem={renderMuscleGroup}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
+
+        <TouchableOpacity
+          style={[
+            globalStyles.primaryButton,
+            { opacity: selectedExercises.length === 0 ? 0.7 : 1 },
+          ]}
+          onPress={handleSaveWorkout}
+          disabled={selectedExercises.length === 0}
+        >
+          <Text style={globalStyles.primaryButtonText}>
+            Salvar Treino Completo
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  innerContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  header: {
+    marginTop: 10,
+    marginBottom: 15,
+  },
   headerSubtitle: {
     color: '#aaa',
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 20,
+    marginTop: 4,
   },
   flatList: {
     width: '100%',
@@ -204,15 +207,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  groupArrow: {
-    color: colors.text,
-    fontSize: 18,
-  },
   exerciseList: {
     backgroundColor: '#1c1c1c',
     paddingHorizontal: 15,
-    paddingTop: 5,
-    paddingBottom: 10,
+    paddingVertical: 5,
   },
   exerciseItem: {
     flexDirection: 'row',

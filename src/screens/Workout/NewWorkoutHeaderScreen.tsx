@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,6 +16,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { globalStyles } from '../../styles/globalStyles';
 import { colors } from '../../styles/colors';
 import { auth } from '../../services/firebaseConfig';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type NewWorkoutHeaderNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -37,6 +39,8 @@ export default function NewWorkoutHeaderScreen() {
   const [description, setDescription] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
+  const insets = useSafeAreaInsets();
+
   //Verificar se o usuário está logado
   if (!auth.currentUser) {
     //Direciona para o login caso nao esteja autenticado
@@ -49,7 +53,9 @@ export default function NewWorkoutHeaderScreen() {
       if (prevDays.includes(day)) {
         return prevDays.filter((d) => d !== day);
       } else {
-        return [...prevDays, day];
+        return [...prevDays, day].sort(
+          (a, b) => DAYS_OF_WEEK.indexOf(a) - DAYS_OF_WEEK.indexOf(b)
+        );
       }
     });
   };
@@ -81,9 +87,17 @@ export default function NewWorkoutHeaderScreen() {
     });
   };
 
+  const isContinuedDisable =
+    !name.trim() || selectedDays.length === 0 || !description.trim();
+
   return (
-    <View style={globalStyles.container}>
-      <ScrollView contentContainerStyle={styles.scroolContent}>
+    <View style={styles.mainWrapper}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroolContent,
+          { paddingTop: insets.top + (Platform.OS === 'android' ? 20 : 0) },
+        ]}
+      >
         <Text style={styles.title}>Novo treino</Text>
         <Text style={styles.subtitle}>Defina o cabeçalho do seu treino.</Text>
 
@@ -143,15 +157,13 @@ export default function NewWorkoutHeaderScreen() {
       <TouchableOpacity
         style={[
           globalStyles.primaryButton,
-          (!name.trim() || selectedDays.length === 0 || !description.trim()) &&
-            styles.disabledButton,
+          styles.fixedButton,
+          isContinuedDisable && styles.disabledButton,
         ]}
         onPress={handleNextStep}
-        disabled={
-          !name.trim() || selectedDays.length === 0 || !description.trim()
-        }
+        disabled={isContinuedDisable}
       >
-        <Text style={globalStyles.primaryButton}>
+        <Text style={globalStyles.primaryButtonText}>
           Próximo: Adicionar Exercicios
         </Text>
       </TouchableOpacity>
@@ -160,10 +172,19 @@ export default function NewWorkoutHeaderScreen() {
 }
 
 const styles = StyleSheet.create({
+  mainWrapper: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: 24,
+  },
   scroolContent: {
-    paddingHorizontal: 0,
+    flexGrow: 1,
     paddingBottom: 20,
-    alignItems: 'center',
+  },
+  fixedButton: {
+    marginBottom: 10,
+    marginTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 0,
   },
   title: {
     ...globalStyles.title,
