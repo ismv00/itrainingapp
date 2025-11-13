@@ -7,6 +7,7 @@ import {
   Keyboard,
   Platform,
   Alert,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -40,7 +41,7 @@ export default function ExerciseDetailModal() {
   const handleSave = () => {
     Keyboard.dismiss();
 
-    if (!sets || reps) {
+    if (!sets || !reps) {
       Alert.alert('Ops!', 'Preencha Séries e Repetições');
       return;
     }
@@ -58,81 +59,84 @@ export default function ExerciseDetailModal() {
   };
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.modalContainer}>
-        <Text style={styles.title}>Configurar {exerciseName}</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Configurar {exerciseName}</Text>
 
-        <TextInput
-          placeholder="Series (ex: 3)"
-          placeholderTextColor="aaa"
-          style={globalStyles.input}
-          keyboardType="numeric"
-          value={sets}
-          onChangeText={setSets}
-        />
+          <TextInput
+            placeholder="Séries (ex: 3)"
+            placeholderTextColor="#aaa"
+            style={globalStyles.input}
+            keyboardType="numeric"
+            value={sets}
+            onChangeText={setSets}
+          />
 
-        <TextInput
-          placeholder="Repetições (ex: 10-12)"
-          placeholderTextColor="aaa"
-          style={globalStyles.input}
-          keyboardType="default"
-          value={reps}
-          onChangeText={setReps}
-        />
+          <TextInput
+            placeholder="Repetições (ex: 10-12)"
+            placeholderTextColor="#aaa"
+            style={globalStyles.input}
+            value={reps}
+            onChangeText={setReps}
+          />
 
-        <TextInput
-          placeholder="Peso Inicial (opcional)"
-          placeholderTextColor="aaa"
-          style={globalStyles.input}
-          keyboardType="numeric"
-          value={initialWeight}
-          onChangeText={setInitialWeight}
-        />
+          <TextInput
+            placeholder="Peso Inicial (opcional)"
+            placeholderTextColor="#aaa"
+            style={globalStyles.input}
+            keyboardType="numeric"
+            value={initialWeight}
+            onChangeText={setInitialWeight}
+          />
 
-        <TextInput
-          placeholder="Peso Final (opcional)"
-          placeholderTextColor="aaa"
-          style={globalStyles.input}
-          keyboardType="numeric"
-          value={finalWeight}
-          onChangeText={setFinalWeight}
-        />
+          <TextInput
+            placeholder="Peso Final (opcional)"
+            placeholderTextColor="#aaa"
+            style={globalStyles.input}
+            keyboardType="numeric"
+            value={finalWeight}
+            onChangeText={setFinalWeight}
+          />
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.cancelButtonText}>Cancelar</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleSave}
-            disabled={!sets || !reps}
-          >
-            <Text style={globalStyles.primaryButtonText}>Salvar</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                globalStyles.primaryButton,
+                styles.saveButton,
+                { opacity: !sets || !reps ? 0.7 : 1 },
+              ]}
+              onPress={handleSave}
+              disabled={!sets || !reps}
+            >
+              <Text style={globalStyles.primaryButtonText}>Salvar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)', // fundo escuro semi-transparente
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   modalContainer: {
     width: '90%',
     backgroundColor: colors.background,
     borderRadius: 15,
     padding: 20,
-    //ajuste o padding inferior para o teclado IOS
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   title: {
@@ -161,8 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   saveButton: {
-    ...globalStyles.primaryButton, // usa estilos globais para o botao principal
     flex: 1,
-    margin: 0, // zera margem para ajuste no layout
+    margin: 0,
   },
 });

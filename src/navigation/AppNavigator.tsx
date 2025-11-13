@@ -29,12 +29,7 @@ export type RootStackParamList = {
   Weight: { gender: string; age: string; height: string };
   Workout: undefined;
   NewWorkoutHeader: undefined;
-  NewWorkout: {
-    name: string;
-    description: string;
-    days: string[];
-  };
-
+  NewWorkout: { name: string; description: string; days: string[] };
   ExerciseDetailModal: {
     exerciseName: string;
     onSave: (details: {
