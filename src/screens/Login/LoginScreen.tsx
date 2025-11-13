@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -16,7 +16,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../services/firebaseConfig';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
@@ -30,6 +30,17 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // ==== Checar o estado do usuario antes de entrar na tela
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigation.replace('Workout');
+      }
+    });
+
+    return () => unsubscribe(); // limpar o listener ao desmontar o componente
+  }, []);
+
   // ===== LOGIN EMAIL/SENHA ====
   const handleLogin = async () => {
     if (!email || !password) {
@@ -39,7 +50,7 @@ export default function Login() {
     try {
       // Realizar o login
       setLoading(true);
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth!, email, password);
       navigation.navigate('Workout');
     } catch (error: any) {
       console.error(error);

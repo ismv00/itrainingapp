@@ -13,6 +13,9 @@ import AgeScreen from '../screens/Age/AgeScreen';
 import HeightScreen from '../screens/Height/HeightScreen';
 import WeightScreen from '../screens/Weight/WeightScreen';
 import WorkoutScreen from '../screens/Workout/WorkoutScreen';
+import NewWorkoutScreen from '../screens/Workout/NewWorkoutScreen';
+import NewWorkoutHeaderScreen from '../screens/Workout/NewWorkoutHeaderScreen';
+import ExerciseDetailModal from '../components/ExerciseDetailModal';
 
 export type RootStackParamList = {
   Test: undefined;
@@ -25,6 +28,17 @@ export type RootStackParamList = {
   Height: { gender: string; age: string };
   Weight: { gender: string; age: string; height: string };
   Workout: undefined;
+  NewWorkoutHeader: undefined;
+  NewWorkout: { name: string; description: string; days: string[] };
+  ExerciseDetailModal: {
+    exerciseName: string;
+    onSave: (details: {
+      sets: number;
+      reps: string;
+      initialWeight: number;
+      finalWeight: number;
+    }) => void;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -83,6 +97,28 @@ export default function AppNavigator({ initialRouteName }: AppNavigatorProps) {
         name="Workout"
         component={WorkoutScreen}
         options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="NewWorkoutHeader"
+        component={NewWorkoutHeaderScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NewWorkout"
+        component={NewWorkoutScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="ExerciseDetailModal"
+        component={ExerciseDetailModal}
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
       />
 
       <Stack.Screen
