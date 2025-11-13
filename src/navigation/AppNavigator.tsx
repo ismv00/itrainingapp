@@ -15,6 +15,7 @@ import WeightScreen from '../screens/Weight/WeightScreen';
 import WorkoutScreen from '../screens/Workout/WorkoutScreen';
 import NewWorkoutScreen from '../screens/Workout/NewWorkoutScreen';
 import NewWorkoutHeaderScreen from '../screens/Workout/NewWorkoutHeaderScreen';
+import WorkoutDetailScreen from '../screens/Workout/WorkoutDetailScreen';
 import ExerciseDetailModal from '../components/ExerciseDetailModal';
 
 export type RootStackParamList = {
@@ -38,6 +39,10 @@ export type RootStackParamList = {
       initialWeight: number;
       finalWeight: number;
     }) => void;
+  };
+  WorkoutDetail: {
+    workoutId: string;
+    userId: string;
   };
 };
 
@@ -117,6 +122,14 @@ export default function AppNavigator({ initialRouteName }: AppNavigatorProps) {
         component={ExerciseDetailModal}
         options={{
           presentation: 'modal',
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="WorkoutDetail"
+        component={WorkoutDetailScreen}
+        options={{
           headerShown: false,
         }}
       />

@@ -15,7 +15,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import UserProfileHeader from '../../components/UserProfileHeader';
 import { auth, db } from '../../services/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -31,63 +38,64 @@ interface Workout {
   days: string[];
 }
 
-const dummyWorkouts: Workout[] = [
-  {
-    id: '1',
-    name: 'Treino A',
-    description: 'Treino de peito',
-    days: ['Segunda', 'Quinta'],
-  },
-  {
-    id: '2',
-    name: 'Treino B',
-    description: 'Treino de pernas',
-    days: ['Terça', 'Sexta'],
-  },
-  {
-    id: '3',
-    name: 'Treino C',
-    description: 'Treimo de costas',
-    days: ['Quarta', 'Sábado'],
-  },
-];
-
 export default function WorkoutScreen() {
   const navigation = useNavigation<WorkoutScreenNavigationProp>();
-  // const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-      setUser(authUser); //Atualiza o estado do usuário
-
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
       if (!authUser) {
+        setUser(null);
         setLoading(false);
         navigation.replace('Login');
         return;
       }
-      const fetchUserData = async () => {
-        const userDocRef = doc(db, 'users', authUser.uid);
-        const userDoc = await getDoc(userDocRef);
 
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        } else {
-          setUserData({
-            name: authUser.displayName,
-            email: authUser.email,
-            photoURL: authUser.photoURL,
-          });
-        }
-        setLoading(false);
-      };
-      fetchUserData();
+      setUser(authUser);
+      await fetchUserData(authUser);
+      await fetchWorkouts(authUser.uid);
     });
 
     return () => unsubscribe();
-  }, [navigation]);
+  }, []);
+
+  const fetchUserData = async (authUser: User) => {
+    const userDocRef = doc(db, 'users', authUser.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      setUserData(userDoc.data());
+    } else {
+      setUserData({
+        name: authUser.displayName,
+        email: authUser.email,
+        photoURL: authUser.photoURL,
+      });
+    }
+  };
+
+  // === BUSCAR TREINOS E LISTAR ===
+  const fetchWorkouts = async (userId: string) => {
+    try {
+      const workoutsRef = collection(db, 'users', userId, 'workouts');
+      const querySnapshot = await getDocs(workoutsRef);
+
+      const userWorkouts: Workout[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Workout[];
+
+      setWorkouts(userWorkouts);
+    } catch (error) {
+      console.error('Erro ao buscar treinos:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os treinos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ==== LOGOUT ====
   const handleLogout = async () => {
@@ -100,22 +108,17 @@ export default function WorkoutScreen() {
     }
   };
 
-  if (loading || !userData) {
-    return (
-      <View style={globalStyles.container}>
-        <ActivityIndicator size="large" color={colors.greenText} />
-      </View>
-    );
-  }
+  const handleCreateNewWorkout = () => {
+    navigation.navigate('NewWorkoutHeader');
+  };
 
   const renderItem = ({ item }: { item: Workout }) => (
     <TouchableOpacity
       style={styles.workoutCard}
       onPress={() =>
-        navigation.navigate('NewWorkout', {
-          name: item.name,
-          description: item.description,
-          days: item.days,
+        navigation.navigate('WorkoutDetail', {
+          workoutId: item.id,
+          userId: user?.uid ?? '',
         })
       }
     >
@@ -128,9 +131,14 @@ export default function WorkoutScreen() {
     </TouchableOpacity>
   );
 
-  const handleCreateNewWorkout = () => {
-    navigation.navigate('NewWorkoutHeader');
-  };
+  if (loading || !userData) {
+    return (
+      <View style={globalStyles.container}>
+        <ActivityIndicator size="large" color={colors.greenText} />
+      </View>
+    );
+  }
+
   return (
     <View style={globalStyles.container}>
       <View style={styles.headerRow}>
@@ -147,13 +155,17 @@ export default function WorkoutScreen() {
         <Text style={styles.createButtonText}>Criar novo</Text>
       </TouchableOpacity>
 
-      <FlatList
-        data={dummyWorkouts}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        style={styles.list}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+      {workouts.length === 0 ? (
+        <Text style={styles.emptyText}>Nenhum treino criado ainda.</Text>
+      ) : (
+        <FlatList
+          data={workouts}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          style={styles.list}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
     </View>
   );
 }
@@ -214,5 +226,11 @@ const styles = StyleSheet.create({
     color: colors.blackText,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  emptyText: {
+    color: '#aaa',
+    textAlign: 'center',
+    fontSize: 16,
+    marginTop: 40,
   },
 });
